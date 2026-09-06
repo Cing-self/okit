@@ -13,6 +13,9 @@
 
 .update-hover-card { position: absolute; z-index: 45; top: calc(100% + 7px); left: 0; width: min(380px, calc(100vw - 28px)); max-height: min(430px, calc(100dvh - 66px)); overflow: hidden; border: 1px solid var(--card-line); border-radius: 12px; color: var(--ink); background: var(--card-surface); box-shadow: 0 16px 36px color-mix(in srgb, var(--ink) 16%, transparent), inset 0 1px 0 color-mix(in srgb, white 80%, transparent); animation: update-hover-card-in .14s ease-out; }
 .update-hover-card::before { position: absolute; top: -5px; left: 10px; width: 9px; height: 9px; border-top: 1px solid var(--card-line); border-left: 1px solid var(--card-line); background: var(--card-surface); content: ''; transform: rotate(45deg); }
+/* Invisible bridge over the 7px gap below the titlebar icon so the pointer
+   path from icon to card never exits the anchor's hover region. */
+.update-hover-card::after { position: absolute; top: -7px; left: 0; right: 0; height: 7px; content: ''; }
 .update-hover-card-header { padding: 16px 16px 11px; background: var(--card-surface); }
 .update-hover-card-header h2 { margin: 0; font-size: 15px; line-height: 1.35; }
 .update-hover-card-version { margin: 3px 0 0; color: var(--ink-muted); font-size: 12px; line-height: 1.4; }
