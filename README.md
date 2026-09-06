@@ -40,6 +40,10 @@ Ten built-in adapters, each writing that agent's native config files (e.g. `conf
 
 **Claude Code · ChatGPT Codex · OpenCode · OpenClaw · WorkBuddy · ZCode · Hermes · Kimi Code · Grok · MiMo Code**
 
+## Desktop app (macOS)
+
+Prefer a GUI? Download the desktop app from [GitHub Releases](https://github.com/Cing-self/modelswap/releases/latest) — arm64 / x64 dmg installers with sha256 checksums, in-app auto-update, and the bundled browser extension for auto-creating keys. The desktop app and the CLI share the same data directory (`~/.modelswap`) — pick either, or run both.
+
 ## Comparison
 
 > Based on both projects' official READMEs as of 2026-09 ([cc-switch](https://github.com/farion1231/cc-switch) · [codex-router](https://github.com/duolahypercho/codex-router)). Different tools, different trade-offs — pick what fits.

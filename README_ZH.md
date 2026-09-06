@@ -40,6 +40,10 @@ English · [官网](https://modelswap.app) · [文档](https://docs.modelswap.ap
 
 **Claude Code · ChatGPT Codex · OpenCode · OpenClaw · WorkBuddy · ZCode · Hermes · Kimi Code · Grok · MiMo Code**
 
+## 下载桌面版（macOS）
+
+喜欢图形界面？从 [GitHub Releases](https://github.com/Cing-self/modelswap/releases/latest) 下载桌面版——提供 arm64 / x64 dmg 安装包与 sha256 校验文件，应用内自动更新，内置浏览器扩展（自动创建 Key）。桌面版与 CLI 共享同一数据目录（`~/.modelswap`），二选一或同时使用均可。
+
 ## 与同类工具对比
 
 > 依据 2026-09 两项目官方 README（[cc-switch](https://github.com/farion1231/cc-switch) · [codex-router](https://github.com/duolahypercho/codex-router)），各有侧重，按需选择。
