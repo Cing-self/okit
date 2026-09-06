@@ -1,0 +1,44 @@
+name: Deploy docs site
+
+# docs.modelswap.app 自动部署：docs/manual 或构建脚本变更合入 main 即上线。
+# wrangler 配置在运行时内联生成（不含 routes——docs.modelswap.app 已在
+# Cloudflare 控制台绑定，CI token 仅需 Workers Scripts 写权限），仓库根的
+# docs-wrangler.jsonc 保留给本地手动部署（带域名路由声明）。
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/manual/**', 'scripts/build-docs-site.mjs']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps (marked for the site builder)
+        run: npm ci --ignore-scripts
+
+      - name: Build docs site
+        run: node scripts/build-docs-site.mjs
+
+      - name: Deploy (script-only config; domain bound in dashboard)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          cat > docs-site-dist/ci-wrangler.jsonc <<'CONF'
+          {
+            "name": "modelswap-docs",
+            "compatibility_date": "2026-08-18",
+            "assets": { "directory": "." }
+          }
+          CONF
+          npx wrangler deploy --config docs-site-dist/ci-wrangler.jsonc
