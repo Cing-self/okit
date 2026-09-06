@@ -222,7 +222,7 @@ const ADAPTERS = _agentsMeta.AGENTS_META;
 // these, adding a provider to the home page writes its models into the agent
 // config, and removing/disabling removes them. Exclusive agents
 // (claude/codex/...) keep single-active-switch semantics.
-const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode']);
+const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode', 'hermes']);
 
 // All entry points delegate Agent config work to this application service.
 // Keep the web-only auth probe here and inject it, rather than letting HTTP

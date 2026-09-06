@@ -28,7 +28,7 @@ function removeSite(config, agentId, providerId) {
   return state;
 }
 
-const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode']);
+const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode', 'hermes']);
 
 function loadRuntime(module) {
   try { return require(`../providers/${module}`); } catch { return require(`../../dist/providers/${module}`); }
