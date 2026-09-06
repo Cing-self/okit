@@ -1,0 +1,25 @@
+{
+  "version": "v1.0.68",
+  "publishedAt": "2026-09-06",
+  "summary": {
+    "zh": "修复桌面版更新提示卡：鼠标从图标移向卡片时不再消失，可以正常悬停阅读更新说明。",
+    "en": "Desktop update hover card fix: moving the pointer from the titlebar icon into the card no longer dismisses it — release notes are readable again."
+  },
+  "highlights": [
+    {
+      "category": "fixed",
+      "zh": "更新提示卡增加 350ms 关闭宽限期，并在图标与卡片之间补上隐形桥接区域：鼠标移向卡片途中不再触发立即关闭。",
+      "en": "The update card gains a 350ms close grace period plus an invisible bridge over the icon-to-card gap, so the pointer path no longer triggers an instant dismiss."
+    },
+    {
+      "category": "improved",
+      "zh": "键盘操作行为保持不变：Esc 立即关闭，焦点离开即收起。",
+      "en": "Keyboard behavior is unchanged: Escape closes immediately and focus loss still collapses the card."
+    },
+    {
+      "category": "improved",
+      "zh": "本次为前端交互修复，无其他功能变更。",
+      "en": "This is a frontend interaction fix only; no other functional changes."
+    }
+  ]
+}

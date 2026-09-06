@@ -361,6 +361,24 @@ function TitlebarUpdateIndicator() {
   const { showToast } = useApp() as any;
   const { update, download, downloading, check, startDownload, restart, restarting } = useUpdateDetails();
   const [showPreview, setShowPreview] = useState(false);
+  // Grace period before an exited hover region hides the card: the pointer
+  // path from the icon into the card crosses non-anchor space (gap + sibling
+  // hit areas), so an immediate close made the card unreachable.
+  const hideTimer = useRef<number | null>(null);
+  const cancelScheduledHide = () => {
+    if (hideTimer.current !== null) {
+      window.clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    }
+  };
+  const scheduleHide = () => {
+    cancelScheduledHide();
+    hideTimer.current = window.setTimeout(() => {
+      hideTimer.current = null;
+      setShowPreview(false);
+    }, 350);
+  };
+  useEffect(() => cancelScheduledHide, []);
 
   // macOS app-menu "检查更新…" → explicit check with a spoken result.
   useEffect(() => {
@@ -392,11 +410,11 @@ function TitlebarUpdateIndicator() {
   return (
     <div
       className="titlebar-update-anchor"
-      onPointerEnter={() => setShowPreview(true)}
-      onPointerLeave={() => setShowPreview(false)}
-      onFocus={() => setShowPreview(true)}
+      onPointerEnter={() => { cancelScheduledHide(); setShowPreview(true); }}
+      onPointerLeave={scheduleHide}
+      onFocus={() => { cancelScheduledHide(); setShowPreview(true); }}
       onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setShowPreview(false); }}
-      onKeyDown={event => { if (event.key === 'Escape') setShowPreview(false); }}
+      onKeyDown={event => { if (event.key === 'Escape') { cancelScheduledHide(); setShowPreview(false); } }}
     >
       <button
         type="button"
