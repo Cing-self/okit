@@ -1,0 +1,25 @@
+{
+  "version": "v1.0.69",
+  "publishedAt": "2026-09-06",
+  "summary": {
+    "zh": "桌面版下载全面直达：README 与用户手册提供固定直链，点击即下载对应芯片的安装包，不再跳转页面。",
+    "en": "Desktop downloads go direct: the README and user manual now link straight to the right dmg for your chip — one click, no page hops."
+  },
+  "highlights": [
+    {
+      "category": "new",
+      "zh": "README 新增桌面版下载入口：Apple 芯片 / Intel 芯片直链，点击直接下载对应 dmg。",
+      "en": "The READMEs gain a desktop download entry with direct links for Apple silicon and Intel Macs — clicking downloads the right dmg immediately."
+    },
+    {
+      "category": "new",
+      "zh": "用户手册安装章节提供全部直接下载地址（含校验文件），并说明两种芯片的区别。",
+      "en": "The user manual's install chapter lists every direct download URL (checksums included) and explains the chip difference."
+    },
+    {
+      "category": "improved",
+      "zh": "发布流程新增固定名安装包别名（ModelSwap-arm64.dmg / ModelSwap-x64.dmg），下载地址从此永不随版本变化。",
+      "en": "The release pipeline now uploads fixed-name aliases (ModelSwap-arm64.dmg / ModelSwap-x64.dmg), so download URLs never change with versions."
+    }
+  ]
+}
