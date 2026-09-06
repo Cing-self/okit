@@ -70,6 +70,13 @@ if [[ ${#assets[@]} -eq 0 ]]; then
     # file breaks the check.
     (cd "$release_dir" && shasum -a 256 "$(basename "$dmg")" > "$(basename "$dmg").sha256")
     assets+=("$release_dir/$(basename "$dmg")" "$release_dir/$(basename "$dmg").sha256")
+    # Fixed-name alias (no version) → stable direct-download URL that always
+    # resolves to the latest release via releases/latest/download/<alias>:
+    #   ModelSwap-arm64.dmg / ModelSwap-x64.dmg (+ .sha256)
+    alias_name="$(basename "$dmg" | sed 's/-[0-9][0-9.]*//')"
+    cp "$dmg" "$release_dir/$alias_name"
+    cp "$release_dir/$(basename "$dmg").sha256" "$release_dir/$alias_name.sha256"
+    assets+=("$release_dir/$alias_name" "$release_dir/$alias_name.sha256")
   done
 
   node .github/scripts/release-notes.js copy "$version" "$release_dir/release-notes.json"

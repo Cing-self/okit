@@ -42,7 +42,7 @@ Ten built-in adapters, each writing that agent's native config files (e.g. `conf
 
 ## Desktop app (macOS)
 
-Prefer a GUI? Download the desktop app from [GitHub Releases](https://github.com/Cing-self/modelswap/releases/latest) — arm64 / x64 dmg installers with sha256 checksums, in-app auto-update, and the bundled browser extension for auto-creating keys. The desktop app and the CLI share the same data directory (`~/.modelswap`) — pick either, or run both.
+Prefer a GUI? Download the desktop app directly — [Apple silicon](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-arm64.dmg) ｜ [Intel](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-x64.dmg) — arm64 / x64 dmg installers with sha256 checksums, in-app auto-update, and the bundled browser extension for auto-creating keys. The desktop app and the CLI share the same data directory (`~/.modelswap`) — pick either, or run both.
 
 ## Comparison
 
