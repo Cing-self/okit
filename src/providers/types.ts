@@ -299,6 +299,11 @@ export interface AgentAdapter {
   // (entries still claimed by another provider are kept) and clear the
   // current selection if it pointed at the removed provider.
   removeProvider?(providerId: string): Promise<void>;
+  // Additive agents only, optional: move the agent-native ACTIVE model to
+  // this site+model (e.g. Hermes's model.default/provider) without rewriting
+  // the site's model allowlist. Called on chip clicks and site saves
+  // (activate: true). Absent = switching stays inside the agent's own UI.
+  activateModel?(provider: Provider, modelId: string, resolvedModel?: ResolvedModel): Promise<void>;
   // Additive agents only (agents whose config supports an enabled flag, e.g.
   // ZCode): flip the provider's enabled state WITHOUT removing its entries.
   // Used by the home-page site toggle OFF; toggling back ON rewrites entries

@@ -304,3 +304,30 @@ describe('HermesAdapter additive multi-site', () => {
     expect(cfg.providers['old-site']).toBeDefined();
   });
 });
+
+describe('HermesAdapter.activateModel (chip-switch semantics)', () => {
+  const siteA = { ...testProvider, id: 'qianfan-coding', baseUrl: 'https://qianfan.example/v2' };
+  const siteB = { ...testProvider, id: 'volcengine-agent', baseUrl: 'https://ark.example/api/plan/v3' };
+
+  it('repoints model: at the site+model without narrowing the allowlist', async () => {
+    const adapter = new HermesAdapter();
+    // Site A active with two models allowlisted.
+    await adapter.applyModels([
+      { provider: siteA, modelId: 'glm-5.3' },
+      { provider: siteA, modelId: 'glm-5.3-flash' },
+    ]);
+    await adapter.activateModel(siteA, 'glm-5.3-flash');
+
+    let cfg = readWritten();
+    expect(cfg.model).toMatchObject({ default: 'glm-5.3-flash', provider: 'custom:qianfan-coding' });
+    expect(cfg.providers['qianfan-coding'].models).toEqual(['glm-5.3', 'glm-5.3-flash']); // untouched
+    expect(cfg.providers['qianfan-coding'].default_model).toBe('glm-5.3-flash');
+
+    // Switching to another SITE moves the pointer; the old site stays intact.
+    await adapter.applyModels([{ provider: siteB, modelId: 'deepseek-v4-pro' }]);
+    await adapter.activateModel(siteB, 'deepseek-v4-pro');
+    cfg = readWritten();
+    expect(cfg.model).toMatchObject({ default: 'deepseek-v4-pro', provider: 'custom:volcengine-agent' });
+    expect(cfg.providers['qianfan-coding'].models).toEqual(['glm-5.3', 'glm-5.3-flash']);
+  });
+});

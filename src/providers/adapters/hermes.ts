@@ -153,6 +153,29 @@ export class HermesAdapter extends BaseAdapter {
     return Object.keys(data.providers);
   }
 
+  // Chip click / site save (activate): move Hermes's active model to this
+  // site+model. Unlike applyConfig this never narrows the site's allowlist —
+  // it only repoints model: (and the entry's default_model) so Hermes starts
+  // using the switched model on its next run.
+  async activateModel(provider: Provider, modelId: string, resolvedModel?: ResolvedModel): Promise<void> {
+    const data = await loadHermesConfig();
+    if (typeof data.providers !== "object" || data.providers === null) data.providers = {};
+    const entry = data.providers[provider.id];
+    if (entry && typeof entry === "object") entry.default_model = modelId;
+
+    if (typeof data.model !== "object" || data.model === null) data.model = {};
+    data.model.default = modelId;
+    data.model.provider = `custom:${provider.id}`;
+    delete data.model.base_url;
+    if (Number.isFinite(resolvedModel?.context)) data.model.context_length = resolvedModel!.context;
+    else delete data.model.context_length;
+    if (Number.isFinite(resolvedModel?.output)) data.model.max_tokens = resolvedModel!.output;
+    else delete data.model.max_tokens;
+    if (resolvedModel?.modalities.input?.includes("image")) data.model.supports_vision = true;
+    else delete data.model.supports_vision;
+    await saveHermesConfig(data);
+  }
+
   // Remove one site's entry entirely. If the removed site was the active one,
   // clear `model.provider`/`model.default` so Hermes falls back to its
   // built-in default instead of dangling `custom:<removed-id>`.
