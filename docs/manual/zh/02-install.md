@@ -10,8 +10,8 @@
 
 | 版本 | 下载 | SHA-256 |
 |------|------|---------|
-| Apple Silicon（M1/M2/M3/M4+） | [ModelSwap-1.0.57-arm64.dmg](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-arm64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-arm64.dmg.sha256) |
-| Intel | [ModelSwap-1.0.57-x64.dmg](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-x64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-x64.dmg.sha256) |
+| Apple Silicon（M1/M2/M3/M4+） | [ModelSwap-1.0.57-arm64.dmg](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-arm64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-arm64.dmg.sha256) |
+| Intel | [ModelSwap-1.0.57-x64.dmg](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-x64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-x64.dmg.sha256) |
 
 更新版本：[全部 Release](https://github.com/Cing-self/modelswap/releases)。桌面版装好后会自动更新（见 2.3），dmg 主要在首次安装时用到。
 
