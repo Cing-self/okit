@@ -1,0 +1,30 @@
+{
+  "version": "v1.0.67",
+  "publishedAt": "2026-09-06",
+  "summary": {
+    "zh": "配置查看器大升级：按文件格式分发解析器并支持 YAML 树形预览；Hermes 转为多站点管理并支持站点模型白名单，chip 切换直写 Hermes 激活模型。",
+    "en": "Config viewer overhaul: parsers dispatch by file extension with YAML tree support; Hermes becomes a multi-site agent with per-site model allowlists, and chip switches now write Hermes's active model directly."
+  },
+  "highlights": [
+    {
+      "category": "improved",
+      "zh": "配置文件树形预览改为按扩展名分发解析器（JSON/JSONC/TOML/YAML），不再盲试格式；Hermes 的 config.yaml 首次支持树形展开，解析失败会明确提示而不是无声退回纯文本。",
+      "en": "The tree preview now dispatches parsers by file extension (JSON/JSONC/TOML/YAML) instead of blind format guessing; Hermes's config.yaml gains a collapsible tree for the first time, and parse failures show an explicit notice instead of silently falling back."
+    },
+    {
+      "category": "improved",
+      "zh": "Hermes 转为叠加型多站点管理：多站点开关并存、停用即从配置中移除；切换模型 chip 时同步写入 Hermes 的激活模型与站点默认模型。",
+      "en": "Hermes is now an additive multi-site agent: several site toggles coexist, disabling removes the site from its config, and chip switches write Hermes's active model and the site default in one step."
+    },
+    {
+      "category": "improved",
+      "zh": "Hermes 站点支持模型白名单：写入 discover_models: false + 列表形态 models，Hermes 不再探测站点 /models 全量目录，模型选择器只显示 ModelSwap 勾选的模型。",
+      "en": "Hermes sites pin a model allowlist: discover_models: false plus a list-shaped models key stops the live /models probe, so Hermes's picker shows exactly the models selected in ModelSwap."
+    },
+    {
+      "category": "fixed",
+      "zh": "配置查看器去掉 50vh 内部滚动，长配置（如 Hermes 8.5KB YAML）一屏读全；顺带清理切换时遗留的 model.base_url 陈旧值。",
+      "en": "The 50vh inner scroll is gone from the config viewer — long configs read in full — and stale model.base_url leftovers are cleaned up on every switch."
+    }
+  ]
+}

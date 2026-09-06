@@ -102,8 +102,10 @@ describe('HermesAdapter.applyConfig (config.yaml schema)', () => {
     await adapter.applyConfig(route.provider, route.remoteModelId, resolveModel(provider, 'canonical-model'));
 
     const written = readWritten();
-    expect(written.providers.deepseek).toMatchObject({ default_model: 'remote-model-v2' });
-    expect(written.providers.deepseek.models).toEqual({
+    expect(written.providers.deepseek).toMatchObject({ default_model: 'remote-model-v2', discover_models: false });
+    // List-shaped models = Hermes ID allowlist; facts ride in model_facts.
+    expect(written.providers.deepseek.models).toEqual(['remote-model-v2']);
+    expect(written.providers.deepseek.model_facts).toEqual({
       'remote-model-v2': { context_length: 131072, supports_vision: true },
     });
     expect(written.model).toMatchObject({
@@ -160,7 +162,8 @@ describe('HermesAdapter.applyConfig (config.yaml schema)', () => {
     });
 
     const written = readWritten();
-    expect(written.providers.deepseek.models).toEqual({
+    expect(written.providers.deepseek.models).toEqual(['ignored-id']);
+    expect(written.providers.deepseek.model_facts).toEqual({
       'ignored-id': { context_length: 131072, supports_vision: true },
     });
     expect(written.model).toMatchObject({
@@ -223,5 +226,108 @@ describe('HermesAdapter.applyConfig (config.yaml schema)', () => {
     await adapter.applyConfig(testProvider, 'deepseek-chat');
 
     expect(updateUserConfig).not.toHaveBeenCalled();
+  });
+});
+
+// ── Additive (multi-site) support ────────────────────────────────────────
+
+describe('HermesAdapter additive multi-site', () => {
+  const siteA = { ...testProvider, id: 'qianfan-coding', baseUrl: 'https://qianfan.example/v2' };
+  const siteB = { ...testProvider, id: 'volcengine-agent', baseUrl: 'https://ark.example/api/plan/v3' };
+
+  it('applyModels upserts a site entry with every selected model, keeping other sites and model block', async () => {
+    // Seed with site A active (as applyConfig would have written it).
+    const adapter = new HermesAdapter();
+    await adapter.applyConfig(siteA, 'glm-5.3');
+    // Now add site B additively with two models.
+    const { written, skipped } = await adapter.applyModels([
+      { provider: siteB, modelId: 'deepseek-v4-pro' },
+      { provider: siteB, modelId: 'deepseek-v4-flash' },
+    ]);
+    expect(written).toEqual(['deepseek-v4-pro', 'deepseek-v4-flash']);
+    expect(skipped).toEqual([]);
+
+    const cfg = readWritten();
+    // Both sites coexist in the providers map.
+    expect(Object.keys(cfg.providers).sort()).toEqual(['qianfan-coding', 'volcengine-agent']);
+    // Site B's entry lists both models; first becomes default_model.
+    const entryB = cfg.providers['volcengine-agent'];
+    expect(entryB.default_model).toBe('deepseek-v4-pro');
+    expect(entryB.discover_models).toBe(false);
+    expect(entryB.models).toEqual(['deepseek-v4-pro', 'deepseek-v4-flash']);
+    expect(entryB.api).toBe('https://ark.example/api/plan/v3');
+    expect(entryB.transport).toBe('chat_completions');
+    // The active model block still points at site A — additive writes never
+    // move the active site.
+    expect(cfg.model.provider).toBe('custom:qianfan-coding');
+    expect(cfg.model.default).toBe('glm-5.3');
+  });
+
+  it('listEnabledProviders returns every providers key', async () => {
+    const adapter = new HermesAdapter();
+    await adapter.applyModels([{ provider: siteA, modelId: 'glm-5.3' }]);
+    await adapter.applyModels([{ provider: siteB, modelId: 'deepseek-v4-pro' }]);
+    expect((await adapter.listEnabledProviders()).sort()).toEqual(['qianfan-coding', 'volcengine-agent']);
+  });
+
+  it('removeProvider deletes the site and clears the active pointer when it pointed there', async () => {
+    const adapter = new HermesAdapter();
+    await adapter.applyConfig(siteA, 'glm-5.3');
+    await adapter.applyModels([{ provider: siteB, modelId: 'deepseek-v4-pro' }]);
+
+    // Removing a non-active site leaves model: untouched.
+    await adapter.removeProvider('volcengine-agent');
+    let cfg = readWritten();
+    expect(cfg.providers['volcengine-agent']).toBeUndefined();
+    expect(cfg.model.provider).toBe('custom:qianfan-coding');
+
+    // Removing the active site clears the dangling custom: pointer.
+    await adapter.removeProvider('qianfan-coding');
+    cfg = readWritten();
+    expect(cfg.providers['qianfan-coding']).toBeUndefined();
+    expect(cfg.model.provider).toBeUndefined();
+    expect(cfg.model.default).toBeUndefined();
+  });
+
+  it('applyConfig drops a stale model.base_url left by older writes', async () => {
+    // Simulate a legacy config carrying model.base_url (z.ai leftover).
+    mocks.files.set(CONFIG_PATH, yaml.dump({
+      model: { default: 'old-model', provider: 'custom:old-site', base_url: 'https://api.z.ai/api/paas/v4' },
+      providers: { 'old-site': { api: 'https://api.z.ai', default_model: 'old-model' } },
+    }));
+    const adapter = new HermesAdapter();
+    await adapter.applyConfig(siteA, 'glm-5.3');
+    const cfg = readWritten();
+    expect(cfg.model.base_url).toBeUndefined();
+    expect(cfg.model.provider).toBe('custom:qianfan-coding');
+    // The legacy site entry stays (surgical: we don't erase what we didn't write).
+    expect(cfg.providers['old-site']).toBeDefined();
+  });
+});
+
+describe('HermesAdapter.activateModel (chip-switch semantics)', () => {
+  const siteA = { ...testProvider, id: 'qianfan-coding', baseUrl: 'https://qianfan.example/v2' };
+  const siteB = { ...testProvider, id: 'volcengine-agent', baseUrl: 'https://ark.example/api/plan/v3' };
+
+  it('repoints model: at the site+model without narrowing the allowlist', async () => {
+    const adapter = new HermesAdapter();
+    // Site A active with two models allowlisted.
+    await adapter.applyModels([
+      { provider: siteA, modelId: 'glm-5.3' },
+      { provider: siteA, modelId: 'glm-5.3-flash' },
+    ]);
+    await adapter.activateModel(siteA, 'glm-5.3-flash');
+
+    let cfg = readWritten();
+    expect(cfg.model).toMatchObject({ default: 'glm-5.3-flash', provider: 'custom:qianfan-coding' });
+    expect(cfg.providers['qianfan-coding'].models).toEqual(['glm-5.3', 'glm-5.3-flash']); // untouched
+    expect(cfg.providers['qianfan-coding'].default_model).toBe('glm-5.3-flash');
+
+    // Switching to another SITE moves the pointer; the old site stays intact.
+    await adapter.applyModels([{ provider: siteB, modelId: 'deepseek-v4-pro' }]);
+    await adapter.activateModel(siteB, 'deepseek-v4-pro');
+    cfg = readWritten();
+    expect(cfg.model).toMatchObject({ default: 'deepseek-v4-pro', provider: 'custom:volcengine-agent' });
+    expect(cfg.providers['qianfan-coding'].models).toEqual(['glm-5.3', 'glm-5.3-flash']);
   });
 });

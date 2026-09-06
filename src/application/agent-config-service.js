@@ -28,7 +28,7 @@ function removeSite(config, agentId, providerId) {
   return state;
 }
 
-const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode']);
+const ADDITIVE_AGENTS = new Set(['workbuddy', 'zcode', 'kimi-code', 'grok', 'mimo-code', 'opencode', 'hermes']);
 
 function loadRuntime(module) {
   try { return require(`../providers/${module}`); } catch { return require(`../../dist/providers/${module}`); }
@@ -120,7 +120,7 @@ function createAgentConfigurationService(overrides = {}) {
     }
   }
 
-  async function writeNative(agentId, provider, write, before, providerId) {
+  async function writeNative(agentId, provider, write, before, providerId, { activate = false } = {}) {
     const adapter = d.getAdapter(agentId);
     if (!adapter) throw asError(`Adapter not implemented: ${agentId}`, 404);
     if (ADDITIVE_AGENTS.has(agentId)) {
@@ -129,6 +129,12 @@ function createAgentConfigurationService(overrides = {}) {
       if (typeof adapter.applyModels !== 'function') throw asError(`${adapterMeta(agentId).name} 不支持写入多个站点模型`, 400);
       const result = await adapter.applyModels(write.routes.map(({ route }) => ({ provider: write.provider, modelId: route.remoteModelId })));
       if (result?.skipped?.length) throw new Error(`以下模型未写入 ${adapterMeta(agentId).name}: ${result.skipped.join('、')}`);
+      // Chip clicks / site saves carry activate: adapters that own a native
+      // active-model pointer (Hermes) follow the switch; agents whose model
+      // picker lives in their own UI stay untouched.
+      if (activate && typeof adapter.activateModel === 'function') {
+        await adapter.activateModel(write.provider, write.route.remoteModelId, write.resolved);
+      }
       return;
     }
     await adapter.applyConfig(write.provider, write.route.remoteModelId, write.resolved, write.resolvedById);
@@ -156,7 +162,7 @@ function createAgentConfigurationService(overrides = {}) {
     let snapshotId = null;
     try { snapshotId = await d.captureSnapshot(agentId); } catch (error) { console.warn(`[${source}] snapshot failed: ${error.message}`); }
     try {
-      await writeNative(agentId, provider, write, before, providerId);
+      await writeNative(agentId, provider, write, before, providerId, { activate: input.activate === true });
       if (persist) {
         const config = await d.loadUserConfig();
         const state = getAgentState(config, agentId);
