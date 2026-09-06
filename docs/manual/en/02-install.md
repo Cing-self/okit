@@ -10,8 +10,8 @@ Download the dmg for your Mac from the GitHub release, drag ModelSwap into Appli
 
 | Version | Download | SHA-256 |
 |---------|----------|---------|
-| Apple Silicon (M1/M2/M3/M4+) | [ModelSwap-1.0.57-arm64.dmg](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-arm64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-arm64.dmg.sha256) |
-| Intel | [ModelSwap-1.0.57-x64.dmg](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-x64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/download/v1.0.57/ModelSwap-1.0.57-x64.dmg.sha256) |
+| Apple Silicon (M1/M2/M3/M4+) | [ModelSwap-1.0.57-arm64.dmg](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-arm64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-arm64.dmg.sha256) |
+| Intel | [ModelSwap-1.0.57-x64.dmg](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-x64.dmg) | [sha256](https://github.com/Cing-self/modelswap/releases/latest/download/ModelSwap-x64.dmg.sha256) |
 
 Newer versions: [all releases](https://github.com/Cing-self/modelswap/releases). Once installed, the desktop app updates itself (see 2.3), so the dmg mostly matters for the first install.
 
