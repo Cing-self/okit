@@ -1314,6 +1314,7 @@ export default {
   'jtree.expand': '展开',
   'jtree.collapse': '折叠',
   'jtree.items': '项',
+  'jtree.parseError': '无法按 {format} 解析，以下为原文',
   'jtree.more': '… 还有 {count} 项未显示',
   'home.tierDefault': '默认（跟主模型一致）',
   'home.tierRouting': '能力路由',

@@ -1314,6 +1314,7 @@ export default {
   'jtree.expand': 'Expand',
   'jtree.collapse': 'Collapse',
   'jtree.items': 'items',
+  'jtree.parseError': 'Could not parse as {format} — showing raw content',
   'jtree.more': '… {count} more items hidden',
   'home.tierDefault': 'Default (same as primary)',
   'home.tierRouting': 'Capability routing',

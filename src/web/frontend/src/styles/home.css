@@ -1709,10 +1709,15 @@
 .home-config-file-editor {
   margin: 0; padding: 12px; background: rgba(0,0,0,0.04); border: 1px solid var(--border, #d4cebe);
   border-radius: 4px; font-family: var(--mono, monospace); font-size: 12px; color: var(--ink);
-  white-space: pre; overflow-x: auto; min-height: 200px; max-height: 50vh;
+  white-space: pre; overflow-x: auto; min-height: 200px;
   resize: vertical; width: 100%; line-height: 1.5; tab-size: 2; outline: none;
   transition: border-color 0.15s;
 }
+/* The viewer body (.home-config-viewer-body) owns scrolling — the editor and
+   the tree grow to their content so long configs read in full instead of
+   being boxed in a 50vh inner pane. */
+.jtree-fallback { display: flex; flex-direction: column; gap: 6px; }
+.jtree-parse-error { margin: 0; font-size: 12px; color: var(--warn, #d97706); }
 .home-config-file-editor:focus { border-color: var(--ink); }
 [data-theme="dark"] .home-config-file-editor { background: rgba(0,0,0,0.25); }
 .home-config-dirty-dot {
@@ -1747,7 +1752,7 @@
 .jtree {
   margin: 0; padding: 10px 8px; background: rgba(0,0,0,0.04); border: 1px solid var(--border, #d4cebe);
   border-radius: 4px; font-family: var(--mono, monospace); font-size: 12px; color: var(--ink);
-  max-height: 50vh; overflow: auto; line-height: 1.6;
+  line-height: 1.6;
 }
 [data-theme="dark"] .jtree { background: rgba(0,0,0,0.25); }
 .jtree-row { white-space: pre-wrap; word-break: break-all; }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
+import yaml from 'js-yaml';
 import { useI18n } from '../../i18n';
-import { parseTomlValue, tryParseToml } from './configParsers';
+import { tryParseToml } from './configParsers';
 
 interface Props {
   value: string;
@@ -103,23 +104,57 @@ function JsonNode({ name, value, depth }: NodeProps) {
   );
 }
 
-// Collapsible tree view. Tries JSON, then TOML; falls back to a plain <pre>
-// when the content can't be parsed. .env files are always shown as raw text.
-export default function JsonTreeView({ value, fileName }: Props) {
-  const base = fileName?.split('/').pop() ?? '';
-  const isEnvFile = /^\.env(\.|$)/i.test(base) || /\.env(\.\w+)?$/i.test(base);
-  if (isEnvFile) {
-    return <pre className="home-config-file-editor" spellCheck={false}>{value}</pre>;
-  }
-
-  let parsed: unknown;
+// Strip JSONC/JSON5 comments and trailing commas, then parse as JSON.
+// Returns undefined when the result is still not valid JSON.
+function tryParseJsonc(text: string): unknown | undefined {
+  const stripped = text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1')
+    .replace(/,(\s*[}\]])/g, '$1');
   try {
-    parsed = JSON.parse(value);
+    return JSON.parse(stripped);
   } catch {
-    parsed = tryParseToml(value);
-    if (parsed === undefined) {
-      return <pre className="home-config-file-editor" spellCheck={false}>{value}</pre>;
+    return undefined;
+  }
+}
+
+// The parser is chosen by the file's extension, never by trying formats in
+// sequence: a YAML block can look like TOML (and vice versa), so blind
+// fallbacks can silently render a wrong tree. Only the format the file claims
+// gets a chance; anything that fails degrades to the raw text view.
+function parseByExtension(base: string, text: string): { parsed?: unknown; error?: string } {
+  const ext = base.match(/(\.[a-z0-9]+)$/i)?.[1]?.toLowerCase();
+  switch (ext) {
+    case '.json':
+      try { return { parsed: JSON.parse(text) }; } catch { return { error: 'json' }; }
+    case '.jsonc': case '.json5': {
+      const parsed = tryParseJsonc(text);
+      return parsed !== undefined ? { parsed } : { error: 'jsonc' };
     }
+    case '.toml': {
+      const parsed = tryParseToml(text);
+      return parsed !== undefined ? { parsed } : { error: 'toml' };
+    }
+    case '.yaml': case '.yml':
+      try { return { parsed: yaml.load(text) }; } catch { return { error: 'yaml' }; }
+    default:
+      // .env and unknown extensions stay raw text by design.
+      return {};
+  }
+}
+
+// Collapsible tree view, dispatched by the file's extension.
+export default function JsonTreeView({ value, fileName }: Props) {
+  const { t } = useI18n();
+  const base = fileName?.split('/').pop() ?? '';
+  const { parsed, error } = parseByExtension(base, value);
+  if (parsed === undefined) {
+    return (
+      <div className="jtree-fallback">
+        {error && <p className="jtree-parse-error">{t('jtree.parseError', { format: error.toUpperCase() })}</p>}
+        <pre className="home-config-file-editor" spellCheck={false}>{value}</pre>
+      </div>
+    );
   }
 
   return (
