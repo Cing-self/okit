@@ -30,13 +30,20 @@ async function saveHermesConfig(data: Record<string, any>): Promise<void> {
 
 function buildProviderEntry(
   provider: Provider,
-  modelId: string,
+  modelIds: string[],
   apiKey?: string,
-  resolvedModel?: ResolvedModel,
+  resolvedModels?: Record<string, ResolvedModel | undefined>,
 ): Record<string, any> {
   const entry: Record<string, any> = {
     api: provider.baseUrl,
-    default_model: modelId,
+    default_model: modelIds[0],
+    // Pin the site to exactly the models ModelSwap selected: a LIST-shaped
+    // `models:` is Hermes's ID allowlist, and `discover_models: false` stops
+    // its live /models probe from replacing it with the site's full catalog
+    // (dict-shaped models is mere metadata — that's why the full site catalog
+    // used to show through). See hermes_cli/model_switch_providers.py.
+    discover_models: false,
+    models: [...modelIds],
   };
   if (apiKey) entry.api_key = apiKey;
   entry.transport = provider.type === "anthropic" ? "anthropic_messages" : "chat_completions";
@@ -45,12 +52,17 @@ function buildProviderEntry(
   // own UA, so pin the opencode client's one via extra_headers (see gateway.ts).
   const gatewayHeaders = gatewayHeadersFor(provider.baseUrl);
   if (gatewayHeaders) entry.extra_headers = gatewayHeaders;
-  // `models` carries per-model facts (context/vision) — metadata, not an
-  // allowlist: Hermes still discovers every model the site serves itself.
-  const modelFacts: Record<string, any> = {};
-  if (Number.isFinite(resolvedModel?.context)) modelFacts.context_length = resolvedModel!.context;
-  if (resolvedModel?.modalities.input?.includes("image")) modelFacts.supports_vision = true;
-  if (Object.keys(modelFacts).length) entry.models = { [modelId]: modelFacts };
+  // Per-model facts ride in a sibling key — `models` must stay a list to keep
+  // its allowlist meaning.
+  const facts: Record<string, Record<string, any>> = {};
+  for (const modelId of modelIds) {
+    const resolvedModel = resolvedModels?.[modelId];
+    const modelFacts: Record<string, any> = {};
+    if (Number.isFinite(resolvedModel?.context)) modelFacts.context_length = resolvedModel!.context;
+    if (resolvedModel?.modalities.input?.includes("image")) modelFacts.supports_vision = true;
+    if (Object.keys(modelFacts).length) facts[modelId] = modelFacts;
+  }
+  if (Object.keys(facts).length) entry.model_facts = facts;
   return entry;
 }
 
@@ -81,7 +93,7 @@ export class HermesAdapter extends BaseAdapter {
     if (typeof data.providers !== "object" || data.providers === null || Array.isArray(data.providers)) {
       data.providers = {};
     }
-    data.providers[provider.id] = buildProviderEntry(provider, modelId, apiKey, resolvedModel);
+    data.providers[provider.id] = buildProviderEntry(provider, [modelId], apiKey, { [modelId]: resolvedModel });
 
     // Active model selects the named custom provider and its default model.
     if (typeof data.model !== "object" || data.model === null) data.model = {};
@@ -125,13 +137,7 @@ export class HermesAdapter extends BaseAdapter {
     const written: string[] = [];
     for (const { provider, modelIds } of bySite.values()) {
       const apiKey = await this.resolveApiKey(provider);
-      // First selected model becomes the site's default; facts map carries
-      // every selected model.
-      const entry = buildProviderEntry(provider, modelIds[0], apiKey);
-      const models: Record<string, any> = {};
-      for (const modelId of modelIds) models[modelId] = {};
-      entry.models = models;
-      data.providers[provider.id] = entry;
+      data.providers[provider.id] = buildProviderEntry(provider, modelIds, apiKey);
       written.push(...modelIds);
     }
 

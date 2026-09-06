@@ -102,8 +102,10 @@ describe('HermesAdapter.applyConfig (config.yaml schema)', () => {
     await adapter.applyConfig(route.provider, route.remoteModelId, resolveModel(provider, 'canonical-model'));
 
     const written = readWritten();
-    expect(written.providers.deepseek).toMatchObject({ default_model: 'remote-model-v2' });
-    expect(written.providers.deepseek.models).toEqual({
+    expect(written.providers.deepseek).toMatchObject({ default_model: 'remote-model-v2', discover_models: false });
+    // List-shaped models = Hermes ID allowlist; facts ride in model_facts.
+    expect(written.providers.deepseek.models).toEqual(['remote-model-v2']);
+    expect(written.providers.deepseek.model_facts).toEqual({
       'remote-model-v2': { context_length: 131072, supports_vision: true },
     });
     expect(written.model).toMatchObject({
@@ -160,7 +162,8 @@ describe('HermesAdapter.applyConfig (config.yaml schema)', () => {
     });
 
     const written = readWritten();
-    expect(written.providers.deepseek.models).toEqual({
+    expect(written.providers.deepseek.models).toEqual(['ignored-id']);
+    expect(written.providers.deepseek.model_facts).toEqual({
       'ignored-id': { context_length: 131072, supports_vision: true },
     });
     expect(written.model).toMatchObject({
@@ -250,7 +253,8 @@ describe('HermesAdapter additive multi-site', () => {
     // Site B's entry lists both models; first becomes default_model.
     const entryB = cfg.providers['volcengine-agent'];
     expect(entryB.default_model).toBe('deepseek-v4-pro');
-    expect(Object.keys(entryB.models).sort()).toEqual(['deepseek-v4-flash', 'deepseek-v4-pro']);
+    expect(entryB.discover_models).toBe(false);
+    expect(entryB.models).toEqual(['deepseek-v4-pro', 'deepseek-v4-flash']);
     expect(entryB.api).toBe('https://ark.example/api/plan/v3');
     expect(entryB.transport).toBe('chat_completions');
     // The active model block still points at site A — additive writes never
